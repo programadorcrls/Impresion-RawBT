@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imprimir Factura</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <style>
+        #error-message {
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>PDFMake - RawBT. Impresión desde teléfono</h1>
+    <label for="size">Seleccione el tamaño:</label>
+    <select id="size">
+        <option value="small">Pequeño (58mm)</option>
+        <option value="medium">Mediano (80mm)</option>
+        <option value="large">Grande (A4)</option>
+    </select>
+    <button onclick="generarFacturaBase64()">Imprimir Factura</button>
+    <div id="error-message"></div>
+
+    <script>
+        function generarFacturaBase64() {
+            const size = document.getElementById('size').value;
+            let pageSize;
+            let fontSize;
+
+            // Definir el tamaño de página y el tamaño de letra
+            switch (size) {
+                case 'small':
+                    pageSize = { width: 58 * 2.83465, height: 'auto' }; // 58mm
+                    fontSize = 8;
+                    break;
+                case 'medium':
+                    pageSize = { width: 80 * 2.83465, height: 'auto' }; // 80mm
+                    fontSize = 10;
+                    break;
+                case 'large':
+                    pageSize = 'A4';
+                    fontSize = 12;
+                    break;
+            }
+
+            const factura_pdf = {
+                pageSize: pageSize,
+                pageMargins: [10, 10, 10, 10],
+                content: [
+                    { text: 'Numero de Factura: 000-001-01-00000001', style: 'header' },
+                    { text: 'ORDEN: 1', margin: [0, 0, 0, 5], style: 'text' },
+                    { text: 'Fecha: 03/02/2025 13:15', margin: [0, 0, 0, 5], style: 'text' },
+                    { text: 'Cliente: Consumidor Final', margin: [0, 0, 0, 5], style: 'text' },
+                    { text: '---------------------------------------------', style: 'text' },
+                    { text: 'Descripción            CTD.     Total', style: 'tableHeader' },
+                    { text: 'G Manzana Roja         50       L521.74', style: 'text' },
+                    { text: '---------------------------------------------', style: 'text', bold: true },
+                    { text: 'ISV - 15%: L156.52', margin: [0, 10, 0, 0], style: 'moneda' },
+                    { text: 'Total: L600.00 / $24.00', style: 'moneda', bold: true },
+                    { text: '---------------------------------------------', style: 'text' },
+                    { text: 'Total Venta Exento: L0.00', style: 'moneda' },
+                    { text: 'Total Venta ISV - 15%: L1,043.48', style: 'moneda' },
+                    { text: 'Total Venta ISV - 18%: L0.00', style: 'moneda' },
+                    { text: 'Total Venta Exonerada: L0.00', style: 'moneda' },
+                    { text: 'Total Ventas: L1,043.48', style: 'moneda' },
+                    { text: 'ISV - 15%: L156.52', style: 'moneda' },
+                    { text: 'ISV - 18%: L0.00', style: 'moneda' },
+                    { text: 'Total Impuestos: L156.52', style: 'moneda' },
+                    { text: 'Total: L600.00', style: 'moneda' },
+
+                    { text: 'SEISCIENTOS LEMPIRAS CON 0/100', margin: [0, 10, 0, 0], style: 'moneda' },
+                    { text: 'Atendió: Cajero 1', margin: [0, 10, 0, 0], style: 'text' },
+
+                    { text: 'Gracias por su visita', margin: [0, 10, 0, 0], style: 'text' },
+                    { text: 'La Factura es Beneficio Exíjala', margin: [0, 5, 0, 0], style: 'text' },
+                ],
+                styles: {
+                    header: {
+                        fontSize: fontSize + 1,
+                        bold: true,
+                        margin: [0, 5, 0, 10]
+                    },
+                    tableHeader: {
+                        fontSize: fontSize,
+                        bold: true,
+                        margin: [0, 10, 0, 5]
+                    },
+                    text: {
+                        fontSize: fontSize,
+                    },
+                    moneda: {
+                        fontSize: fontSize,
+                        bold: false,
+                    },
+                    footer: {
+                        fontSize: fontSize - 1,
+                        italics: true,
+                        alignment: 'center',
+                        margin: [0, 10, 0, 0]
+                    }
+                }
+            };
+
+            pdfMake.createPdf(factura_pdf).getBase64(function(base64) {
+                enviarAPrint(base64);
+            });
+        }
+
+        function enviarAPrint(base64) {
+            const enlace = `rawbt:data:application/pdf;base64,${base64}`;
+            const intentLink = `intent:${enlace}#Intent;package=ru.a402d.rawbtprinter;end;`;
+
+            try {
+                window.location.href = intentLink;
+            } catch (error) {
+                mostrarError(`Error al intentar imprimir: ${error.message}`);
+            }
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById('error-message').innerText = mensaje;
+        }
+    </script>
+</body>
+</html>

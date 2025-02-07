@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imprimir Factura</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <style>
+        #error-message {
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generar e Imprimir Factura</h1>
+    <button onclick="generarFacturaBase64()">Imprimir Factura</button>
+    <div id="error-message"></div>
+
+    <script>
+        function generarFacturaBase64() {
+            const factura_pdf = {
+                content: [
+                    { text: 'Factura', style: 'header' },
+                    'Cliente: Juan Pérez',
+                    'Producto: Producto XYZ',
+                    'Cantidad: 2',
+                    'Total: $200',
+                    { text: 'Gracias por su compra!', style: 'footer' }
+                ],
+                styles: {
+                    header: {
+                        fontSize: 22,
+                        bold: true,
+                        margin: [0, 20, 0, 10]
+                    },
+                    footer: {
+                        fontSize: 12,
+                        italics: true,
+                        margin: [0, 20, 0, 0]
+                    }
+                }
+            };
+
+            pdfMake.createPdf(factura_pdf).getBase64(function(base64) {
+                enviarAPrint(base64);
+            });
+        }
+
+        function enviarAPrint(base64) {
+            const enlace = `rawbt:data:application/pdf;base64,${base64}`;
+            const intentLink = `intent:${enlace}#Intent;package=ru.a402d.rawbtprinter;end;`;
+
+            // Intentar abrir el enlace
+            try {
+                window.location.href = intentLink;
+            } catch (error) {
+                mostrarError(`Error al intentar imprimir: ${error.message}`);
+            }
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById('error-message').innerText = mensaje;
+        }
+    </script>
+</body>
+</html>
